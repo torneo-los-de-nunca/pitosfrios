@@ -5,8 +5,7 @@ import {
   setDoc,
   onSnapshot,
   deleteDoc,
-  getDoc,
-  arrayUnion
+  getDoc
 } from "firebase/firestore";
 import { db } from "../Firebase";
 import { useAdmin } from "../context/AdminContext";
@@ -286,40 +285,33 @@ async function handleSaveEvent() {
     const semanaKey = String(semanaSeleccionada);
     const ref = doc(db, "semanas", semanaKey);
 
+    const snap = await getDoc(ref);
+    const prev = snap.exists() ? snap.data().eventos || [] : [];
+
     const nuevaFicha = {
       fecha: newEventDate,
       lugar: newEventLugar,
       contexto: newEventContexto,
       nota: newEventNota,
       opciones: selectedPlayers,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
-    if (editIndex !== null) {
-      // edición (sí necesita leer)
-      const snap = await getDoc(ref);
-      const prev = snap.exists() ? snap.data().eventos || [] : [];
+    const nuevos =
+      editIndex !== null
+        ? prev.map((e, i) => (i === editIndex ? nuevaFicha : e))
+        : [...prev, nuevaFicha];
 
-      const nuevos = prev.map((e, i) =>
-        i === editIndex ? nuevaFicha : e
-      );
+    await setDoc(
+      ref,
+      {
+        eventos: nuevos,
+        updatedAt: new Date(),
+      },
+      { merge: true }
+    );
 
-      await setDoc(
-        ref,
-        { eventos: nuevos },
-        { merge: true }
-      );
-    } else {
-      // alta nueva (NO necesita leer)
-      await setDoc(
-        ref,
-        {
-          eventos: arrayUnion(nuevaFicha)
-        },
-        { merge: true }
-      );
-    }
-
+    // reset UI
     setEditIndex(null);
     setAddingEvent(false);
     setSelectedPlayers({});
@@ -327,14 +319,12 @@ async function handleSaveEvent() {
     setNewEventLugar("");
     setNewEventContexto("");
     setNewEventNota("");
+  } catch (err) {
+    console.error("ERROR guardando ficha:", err);
+    alert("No se pudo guardar la ficha");
+  }
+}
 
-} catch (err) {
-  console.error("ERROR guardando ficha:", err);
-  console.error("ERROR code:", err?.code);
-  console.error("ERROR message:", err?.message);
-  alert("No se pudo guardar la ficha");
-}
-}
 
 
 
