@@ -189,7 +189,7 @@ const PERFIL_JUGADORES = {
     nombre: "Carly",
     color: "#94A3B8",
     tagline: "Turbio y morboso",
-    fechaOro: "24 de marzo",
+    fechaOro: "22 de abril",
     puntajeHistoricoBase: 0,
     posiciones: {
       "2026": " Primer campeonato",
@@ -259,70 +259,70 @@ const PERFIL_JUGADORES = {
 // ===============================
 const ULTIMA_VEZ_BASE = {
   // OSO
-  "Fischer|Oso": "2025-11-24",
-  "Oso|Pechuga": "2025-10-01",
-  "Fede|Oso": "2025-11-09",
-  "Luisito|Oso": "2025-11-08",
-  "Carly|Oso": "2025-11-30",
-  "Cali|Oso": "2025-11-29",
-  "Achu|Oso": "2025-11-08",
-  "Chiche|Oso": "2025-11-08",
-  "Oso|Pasca": "2025-11-15",
+  "Fischer|Oso": "2025-12-31",
+  "Oso|Pechuga": "2025-12-31",
+  "Fede|Oso": "2025-12-31",
+  "Luisito|Oso": "2025-12-31",
+  "Carly|Oso": "2025-12-31",
+  "Cali|Oso": "2025-12-31",
+  "Achu|Oso": "2025-12-31",
+  "Chiche|Oso": "2025-12-31",
+  "Oso|Pasca": "2025-12-31",
 
   // PECHUGA
-  "Fischer|Pechuga": "2025-11-01",
-  "Fede|Pechuga": "2025-11-28",
-  "Luisito|Pechuga": "2025-06-28",
-  "Carly|Pechuga": "2025-11-08",
-  "Cali|Pechuga": "2025-11-08",
-  "Achu|Pechuga": "2025-11-28",
-  "Chiche|Pechuga": "2025-11-08",
-  "Pasca|Pechuga": "2025-11-08",
+  "Fischer|Pechuga": "2025-12-31",
+  "Fede|Pechuga": "2025-12-31",
+  "Luisito|Pechuga": "2025-12-31",
+  "Carly|Pechuga": "2025-12-31",
+  "Cali|Pechuga": "2025-12-31",
+  "Achu|Pechuga": "2025-12-31",
+  "Chiche|Pechuga": "2025-12-31",
+  "Pasca|Pechuga": "2025-12-31",
 
 
   // FEDE
-  "Fede|Fischer": "2025-11-01",
-  "Fede|Luisito": "2025-11-28",
-  "Carly|Fede": "2025-11-08",
-  "Cali|Fede": "2025-11-08",
-  "Achu|Fede": "2025-11-08",
-  "Chiche|Fede": "2025-11-08",
-  "Fede|Pasca": "2025-11-08",
+  "Fede|Fischer": "2025-12-31",
+  "Fede|Luisito": "2025-12-31",
+  "Carly|Fede": "2025-12-31",
+  "Cali|Fede": "2025-12-31",
+  "Achu|Fede": "2025-12-31",
+  "Chiche|Fede": "2025-12-31",
+  "Fede|Pasca": "2025-12-31",
 
   // LUISITO
-  "Fischer|Luisito": "2025-11-01",
-  "Carly|Luisito": "2025-11-28",
-  "Cali|Luisito": "2025-06-28",
-  "Achu|Luisito": "2025-11-09",
-  "Chiche|Luisito": "2025-11-08",
-  "Luisito|Pasca": "2025-11-08",
+  "Fischer|Luisito": "2025-12-31",
+  "Carly|Luisito": "2025-12-31",
+  "Cali|Luisito": "2025-12-31",
+  "Achu|Luisito": "2025-12-31",
+  "Chiche|Luisito": "2025-12-31",
+  "Luisito|Pasca": "2025-12-31",
 
 
   // CARLY
-  "Carly|Fischer": "2025-11-01",
-  "Cali|Carly": "2025-10-25",
-  "Achu|Carly": "2025-06-28",
-  "Carly|Chiche": "2025-11-08",
-  "Carly|Pasca": "2025-11-08",
+  "Carly|Fischer": "2025-12-31",
+  "Cali|Carly": "2025-12-31",
+  "Achu|Carly": "2025-12-31",
+  "Carly|Chiche": "2025-12-31",
+  "Carly|Pasca": "2025-12-31",
 
 
   // CALI
-  "Cali|Fischer": "2025-11-28",
-  "Achu|Cali": "2025-10-30",
-  "Cali|Chiche": "2025-08-24",
-  "Cali|Pasca": "2025-08-23",
+  "Cali|Fischer": "2025-12-31",
+  "Achu|Cali": "2025-12-31",
+  "Cali|Chiche": "2025-12-31",
+  "Cali|Pasca": "2025-12-31",
 
   // ACHU
-  "Achu|Fischer": "2025-11-01",
-  "Achu|Chiche": "2025-08-05",
-  "Achu|Pasca": "2025-11-08",
+  "Achu|Fischer": "2025-12-31",
+  "Achu|Chiche": "2025-12-31",
+  "Achu|Pasca": "2025-12-31",
 
   // CHICHE
-  "Chiche|Fischer": "2025-11-01",
-  "Chiche|Pasca": "2025-06-28",
+  "Chiche|Fischer": "2025-12-31",
+  "Chiche|Pasca": "2025-12-31",
 
   // PASCA
-  "Fischer|Pasca": "2025-06-14",
+  "Fischer|Pasca": "2025-12-31",
 
 };
 
