@@ -280,8 +280,13 @@ if (passwordInput === "Cacona") {
   // ===============================
   // GUARDAR EVENTO
   // ===============================
-async function handleSaveEvent() {
+async function handleSaveEvent(e) {
+  // 🔴 CLAVE: evita que el form haga submit silencioso
+  if (e) e.preventDefault();
+
   try {
+    console.log("CLICK GUARDAR FICHA");
+
     const semanaKey = String(semanaSeleccionada);
     const ref = doc(db, "semanas", semanaKey);
 
@@ -311,7 +316,7 @@ async function handleSaveEvent() {
       { merge: true }
     );
 
-    // reset UI
+    // ✅ RESET UI (esto antes no se ejecutaba en prod)
     setEditIndex(null);
     setAddingEvent(false);
     setSelectedPlayers({});
@@ -319,6 +324,8 @@ async function handleSaveEvent() {
     setNewEventLugar("");
     setNewEventContexto("");
     setNewEventNota("");
+
+    console.log("FICHA GUARDADA OK");
   } catch (err) {
     console.error("ERROR guardando ficha:", err);
     alert("No se pudo guardar la ficha");
