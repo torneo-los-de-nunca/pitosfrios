@@ -194,6 +194,119 @@ const { isAdmin, login, logout } = useAdmin();
   const [editIndex, setEditIndex] = useState(null);
 
   const semanasArray = Array.from({ length: TOTAL_SEMANAS }, (_, i) => i + 1);
+  // ===============================
+// FECHA DE ORO (AUTO + OVERRIDE)
+// ===============================
+
+// ✅ 1) Pegá acá tu lista real (MM-DD). El año lo calcula solo.
+const FECHAS_CUMPLE_ORO = [
+{ nombre: "Oso", mmdd: "08-19" },
+  { nombre: "Sombra", mmdd: "04-22" },
+  { nombre: "Profesor", mmdd: "05-21" },
+  { nombre: "Picante", mmdd: "01-08" },
+  { nombre: "Potencia", mmdd: "21-03" },
+  { nombre: "Tía", mmdd: "03-06" },
+  { nombre: "Mistico", mmdd: "10-27" },
+  { nombre: "German", mmdd: "02-06" },
+  { nombre: "Navai", mmdd: "08-12" },
+  { nombre: "Conejo", mmdd: "11-02" },
+];
+
+// Firestore override (si se reprograma)
+const [oroOverrideISO, setOroOverrideISO] = useState(null); // "YYYY-MM-DD" o null
+const [oroEditOpen, setOroEditOpen] = useState(false);
+const [oroDraftISO, setOroDraftISO] = useState("");
+
+// Helpers
+const pad2 = (n) => String(n).padStart(2, "0");
+
+function formatDDMMYYYYFromISO(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function startOfDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function diffDaysCeil(fromDate, toDate) {
+  const a = startOfDay(fromDate).getTime();
+  const b = startOfDay(toDate).getTime();
+  const ms = b - a;
+  return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+}
+
+function mmddToNextDate(mmdd, baseDate = new Date()) {
+  // mmdd: "MM-DD"
+  const [mmStr, ddStr] = (mmdd || "").split("-");
+  const mm = Number(mmStr);
+  const dd = Number(ddStr);
+  if (!mm || !dd) return null;
+
+  const today = startOfDay(baseDate);
+  const y = today.getFullYear();
+
+  // usar mediodía para evitar quilombos por timezone/DST
+  const candidateThisYear = new Date(y, mm - 1, dd, 12, 0, 0, 0);
+
+  if (startOfDay(candidateThisYear) >= today) return candidateThisYear;
+
+  return new Date(y + 1, mm - 1, dd, 12, 0, 0, 0);
+}
+
+function computeNextGoldDateISO(baseDate = new Date()) {
+  const dates = FECHAS_CUMPLE_ORO
+    .map((x) => mmddToNextDate(x.mmdd, baseDate))
+    .filter(Boolean);
+
+  if (!dates.length) return null;
+
+  dates.sort((a, b) => a.getTime() - b.getTime());
+  const d = dates[0];
+
+  const y = d.getFullYear();
+  const m = pad2(d.getMonth() + 1);
+  const day = pad2(d.getDate());
+  return `${y}-${m}-${day}`;
+}
+    // ===============================
+// LISTENER CONFIG (override fecha oro)
+// ===============================
+useEffect(() => {
+  const ref = doc(db, "config", "fechasOro");
+  const unsub = onSnapshot(ref, (snap) => {
+    const data = snap.data() || {};
+    setOroOverrideISO(data?.overrideISO || null);
+  });
+
+  return () => unsub();
+}, []);
+  const hoy = new Date();
+const autoOroISO = computeNextGoldDateISO(hoy);
+
+// Regla:
+// - si hay overrideISO => se usa ese (aunque no esté en la lista)
+// - si no hay => auto desde lista
+const oroISO = oroOverrideISO || autoOroISO;
+
+const oroDateObj = oroISO ? new Date(oroISO + "T12:00:00") : null;
+const diasRestantes = oroDateObj ? diffDaysCeil(hoy, oroDateObj) : null;
+  async function saveOroOverride(nextISOOrNull) {
+  try {
+    await setDoc(
+      doc(db, "config", "fechasOro"),
+      { overrideISO: nextISOOrNull || null, updatedAt: new Date() },
+      { merge: true }
+    );
+    setOroEditOpen(false);
+  } catch (e) {
+    console.error("Error guardando override fecha oro:", e);
+    alert("No se pudo guardar la Fecha de Oro. Mirá la consola.");
+  }
+}
 
   // ===============================
   // FIRESTORE REALTIME
@@ -489,6 +602,78 @@ async function handleSaveEvent(e) {
 
         {/* TÍTULO */}
         <h1 className="titulo">TORNEO LOS PITOS FRÍOS 2026</h1>
+{/* ===============================
+    CARTEL PRÓXIMA FECHA DE ORO
+=============================== */}
+<div className="oro-banner-wrap">
+  <div className="oro-banner">
+    <div className="oro-badge">✨ FECHA DE ORO</div>
+
+    {oroISO ? (
+      <>
+        <div className="oro-main">
+          Próxima fecha de oro <span className="oro-date">{formatDDMMYYYYFromISO(oroISO)}</span>
+        </div>
+
+        <div className="oro-sub">
+          Faltan <span className="oro-days">{diasRestantes}</span> día{diasRestantes === 1 ? "" : "s"}
+        </div>
+      </>
+    ) : (
+      <div className="oro-main">Cargá la lista de cumpleaños para calcular la próxima Fecha de Oro</div>
+    )}
+
+    {isAdmin && (
+      <div className="oro-actions">
+        <button
+          className="oro-btn"
+          onClick={() => {
+            setOroDraftISO(oroOverrideISO || autoOroISO || "");
+            setOroEditOpen(true);
+          }}
+        >
+          Editar
+        </button>
+
+        {oroOverrideISO && (
+          <button className="oro-btn oro-btn-ghost" onClick={() => saveOroOverride(null)}>
+            Volver a automático
+          </button>
+        )}
+      </div>
+    )}
+  </div>
+</div>
+
+{/* MODAL EDITAR (solo admin) */}
+{isAdmin && oroEditOpen && (
+  <div className="oro-modal-backdrop" onClick={() => setOroEditOpen(false)}>
+    <div className="oro-modal" onClick={(e) => e.stopPropagation()}>
+      <h3 className="oro-modal-title">Editar Fecha de Oro</h3>
+
+      <p className="oro-modal-desc">
+        Si la reprogramás, guardamos un override en Firestore. Si lo dejás vacío y tocás “Volver a automático”, vuelve a calcularse por cumpleaños.
+      </p>
+
+      <label className="oro-modal-label">Fecha (override)</label>
+      <input
+        className="oro-modal-input"
+        type="date"
+        value={oroDraftISO}
+        onChange={(e) => setOroDraftISO(e.target.value)}
+      />
+
+      <div className="oro-modal-row">
+        <button className="oro-modal-save" onClick={() => saveOroOverride(oroDraftISO || null)}>
+          Guardar
+        </button>
+        <button className="oro-modal-cancel" onClick={() => setOroEditOpen(false)}>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* LEYENDA */}
         <div className="leyenda">
