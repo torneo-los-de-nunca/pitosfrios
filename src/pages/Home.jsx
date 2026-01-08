@@ -5,8 +5,11 @@ import {
   setDoc,
   onSnapshot,
   deleteDoc,
-  getDoc
+  getDoc,
+  updateDoc
 } from "firebase/firestore";
+
+
 import { db } from "../Firebase";
 import { useAdmin } from "../context/AdminContext";
 
@@ -183,6 +186,10 @@ export default function Home() {
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
 const { isAdmin, login, logout } = useAdmin();
+useEffect(() => {
+  console.log("IS ADMIN:", isAdmin);
+}, [isAdmin]);
+
   const [addingEvent, setAddingEvent] = useState(false);
 
   const [newEventDate, setNewEventDate] = useState("");
@@ -201,21 +208,31 @@ const { isAdmin, login, logout } = useAdmin();
 // ✅ 1) Pegá acá tu lista real (MM-DD). El año lo calcula solo.
 const FECHAS_CUMPLE_ORO = [
 { nombre: "Oso", mmdd: "08-19" },
-  { nombre: "Sombra", mmdd: "04-22" },
-  { nombre: "Profesor", mmdd: "05-21" },
-  { nombre: "Picante", mmdd: "01-08" },
-  { nombre: "Potencia", mmdd: "21-03" },
-  { nombre: "Tía", mmdd: "03-06" },
-  { nombre: "Mistico", mmdd: "10-27" },
-  { nombre: "German", mmdd: "02-06" },
-  { nombre: "Navai", mmdd: "08-12" },
-  { nombre: "Conejo", mmdd: "11-02" },
+  { nombre: "Carly", mmdd: "04-22" },
+  { nombre: "Achu", mmdd: "01-17" },
+  { nombre: "Pechuga", mmdd: "01-08" },
+  { nombre: "Luisito", mmdd: "03-21" },
+  { nombre: "Chiche", mmdd: "05-21" },
+  { nombre: "Fede", mmdd: "10-27" },
+  { nombre: "Cali", mmdd: "02-06" },
+  { nombre: "Pasca", mmdd: "08-12" },
+  { nombre: "Fischer", mmdd: "11-02" },
 ];
 
 // Firestore override (si se reprograma)
 const [oroOverrideISO, setOroOverrideISO] = useState(null); // "YYYY-MM-DD" o null
 const [oroEditOpen, setOroEditOpen] = useState(false);
 const [oroDraftISO, setOroDraftISO] = useState("");
+const [oroCongeladas, setOroCongeladas] = useState([]);
+const [oroOverrideMode, setOroOverrideMode] = useState(null); // "fecha" | "indefinido" | null
+const [oroOverrideNombre, setOroOverrideNombre] = useState(null);
+const [oroOverrideOriginalISO, setOroOverrideOriginalISO] = useState(null);
+const [editCongelada, setEditCongelada] = useState(null);
+const [editNombre, setEditNombre] = useState("");
+const [editFechaISO, setEditFechaISO] = useState("");
+const [editFechaADefinir, setEditFechaADefinir] = useState(false);
+
+
 
 // Helpers
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -257,21 +274,29 @@ function mmddToNextDate(mmdd, baseDate = new Date()) {
   return new Date(y + 1, mm - 1, dd, 12, 0, 0, 0);
 }
 
-function computeNextGoldDateISO(baseDate = new Date()) {
-  const dates = FECHAS_CUMPLE_ORO
-    .map((x) => mmddToNextDate(x.mmdd, baseDate))
+function computeNextGoldDate(baseDate = new Date()) {
+  const candidates = FECHAS_CUMPLE_ORO
+    .map((x) => {
+      const d = mmddToNextDate(x.mmdd, baseDate);
+      return d ? { ...x, date: d } : null;
+    })
     .filter(Boolean);
 
-  if (!dates.length) return null;
+  if (!candidates.length) return null;
 
-  dates.sort((a, b) => a.getTime() - b.getTime());
-  const d = dates[0];
+  candidates.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const next = candidates[0];
 
-  const y = d.getFullYear();
-  const m = pad2(d.getMonth() + 1);
-  const day = pad2(d.getDate());
-  return `${y}-${m}-${day}`;
+  const y = next.date.getFullYear();
+  const m = pad2(next.date.getMonth() + 1);
+  const day = pad2(next.date.getDate());
+
+  return {
+    iso: `${y}-${m}-${day}`,
+    nombre: next.nombre,
+  };
 }
+
     // ===============================
 // LISTENER CONFIG (override fecha oro)
 // ===============================
@@ -280,33 +305,182 @@ useEffect(() => {
   const unsub = onSnapshot(ref, (snap) => {
     const data = snap.data() || {};
     setOroOverrideISO(data?.overrideISO || null);
+    setOroOverrideMode(data?.overrideMode || null);
+    setOroOverrideNombre(data?.overrideNombre || null);
+    setOroOverrideOriginalISO(data?.overrideOriginalISO || null);
   });
 
   return () => unsub();
 }, []);
-  const hoy = new Date();
-const autoOroISO = computeNextGoldDateISO(hoy);
 
-// Regla:
-// - si hay overrideISO => se usa ese (aunque no esté en la lista)
-// - si no hay => auto desde lista
-const oroISO = oroOverrideISO || autoOroISO;
+const hoy = new Date();
+
+const autoOro = computeNextGoldDate(hoy);
+const [oroOriginalISOState, setOroOriginalISOState] = useState(null);
+
+useEffect(() => {
+  if (!oroOriginalISOState && autoOro?.iso) {
+    setOroOriginalISOState(autoOro.iso);
+  }
+}, [autoOro, oroOriginalISOState]);
+
+const oroOriginalISO = oroOriginalISOState;
+
+// si ya pasó el día original, el banner debe mostrar la próxima fecha automática
+const originalYaPaso =
+  oroOriginalISO && startOfDay(hoy) > startOfDay(new Date(oroOriginalISO + "T12:00:00"));
+
+const oroISO = originalYaPaso
+  ? autoOro?.iso
+  : (oroOverrideISO || autoOro?.iso);
+
+const oroCumpleNombre = oroOverrideISO ? null : autoOro?.nombre;
 
 const oroDateObj = oroISO ? new Date(oroISO + "T12:00:00") : null;
 const diasRestantes = oroDateObj ? diffDaysCeil(hoy, oroDateObj) : null;
-  async function saveOroOverride(nextISOOrNull) {
+
+// ===============================
+// LISTENER CONGELADAS (Firestore)
+// ===============================
+useEffect(() => {
+  const colRef = collection(db, "config", "fechasOro", "congeladas");
+  const unsub = onSnapshot(colRef, (snap) => {
+    const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    // orden: definidas primero por fecha, indefinidas al final
+    arr.sort((a, b) => {
+      if (a.aDefinir && !b.aDefinir) return 1;
+      if (!a.aDefinir && b.aDefinir) return -1;
+      if (!a.reprogramadaISO || !b.reprogramadaISO) return 0;
+      return a.reprogramadaISO.localeCompare(b.reprogramadaISO);
+    });
+
+    setOroCongeladas(arr);
+  });
+
+  return () => unsub();
+}, []);
+
+// ===============================
+// CONGELAR FECHA DE ORO CUANDO TERMINA EL DÍA ORIGINAL
+// ===============================
+useEffect(() => {
+  if (!oroOverrideISO) return;      // solo si fue reprogramada
+  if (!oroOriginalISO) return;
+
+  const hoyCero = startOfDay(new Date());
+  const originalCero = startOfDay(new Date(oroOriginalISO + "T12:00:00"));
+
+  // 👉 solo cuando el día original YA TERMINÓ
+  if (hoyCero <= originalCero) return;
+
+  setOroCongeladas((prev) => {
+    const yaExiste = prev.some(c => c.originalISO === oroOriginalISO);
+    if (yaExiste) return prev;
+
+    return [
+      ...prev,
+      {
+        id: oroOriginalISO,
+        originalISO: oroOriginalISO,
+        reprogramadaISO: oroOverrideISO,
+        aDefinir: !oroOverrideISO,
+        creadaEn: new Date(),
+      },
+    ];
+  });
+}, [oroOverrideISO, oroOriginalISO]);
+
+
+
+// ===============================
+// TEXTO Y ESTADO VISUAL FECHA DE ORO
+// ===============================
+let oroEstadoTexto = "";
+let oroEstadoClase = "";
+
+
+if (diasRestantes === 0) {
+  oroEstadoTexto = "🔥 HOY ES FECHA DE ORO";
+  oroEstadoClase = "oro-hoy";
+} else if (diasRestantes === 1) {
+  oroEstadoTexto = "⏰ ES MAÑANA";
+  oroEstadoClase = "oro-mañana";
+} else if (diasRestantes <= 7) {
+  oroEstadoTexto = "⚠️ ES ESTA SEMANA";
+  oroEstadoClase = "oro-semana";
+} else if (diasRestantes !== null) {
+  oroEstadoTexto = `Faltan ${diasRestantes} días`;
+  oroEstadoClase = "oro-normal";
+}
+
+async function saveOroOverride({ tipo, fechaISO, nombre }) {
   try {
+    // 👉 Crear congelado SIEMPRE que se reprograma
+    if (tipo === "reprogramar") {
+      const ref = doc(
+        collection(db, "config", "fechasOro", "congeladas")
+      );
+
+      await setDoc(ref, {
+        nombre,
+        originalISO: oroOriginalISO,
+        reprogramadaISO: fechaISO || null,
+        aDefinir: !fechaISO,
+        createdAt: new Date(),
+      });
+    }
+
+    // 👉 El banner solo se controla con override
     await setDoc(
       doc(db, "config", "fechasOro"),
-      { overrideISO: nextISOOrNull || null, updatedAt: new Date() },
+      {
+        overrideISO: fechaISO || null,
+      },
       { merge: true }
     );
+
     setOroEditOpen(false);
   } catch (e) {
-    console.error("Error guardando override fecha oro:", e);
-    alert("No se pudo guardar la Fecha de Oro. Mirá la consola.");
+    console.error(e);
+    alert("Error al reprogramar");
   }
 }
+
+
+function abrirEditarCongelada(c) {
+  setEditCongelada(c);
+  setEditNombre(c.nombre);
+  setEditFechaISO(c.fechaReprogramadaISO || "");
+  setEditFechaADefinir(c.fechaADefinir || false);
+}
+
+async function guardarEdicionCongelada() {
+  if (!editCongelada) return;
+
+  await updateDoc(
+    doc(db, "config", "fechasOro", "congeladas", editCongelada.id),
+    {
+      nombre: editNombre,
+      reprogramadaISO: editFechaADefinir ? null : editFechaISO,
+      aDefinir: editFechaADefinir,
+      updatedAt: new Date(),
+    }
+  );
+
+  setEditCongelada(null);
+}
+
+
+async function borrarCongelada(id) {
+  if (!window.confirm("¿Borrar esta reprogramación?")) return;
+
+  await deleteDoc(
+    doc(db, "config", "fechasOro", "congeladas", id)
+  );
+}
+
+
 
   // ===============================
   // FIRESTORE REALTIME
@@ -615,9 +789,16 @@ async function handleSaveEvent(e) {
           Próxima fecha de oro <span className="oro-date">{formatDDMMYYYYFromISO(oroISO)}</span>
         </div>
 
-        <div className="oro-sub">
-          Faltan <span className="oro-days">{diasRestantes}</span> día{diasRestantes === 1 ? "" : "s"}
-        </div>
+<div className={`oro-sub ${oroEstadoClase}`}>
+  {oroEstadoTexto}
+</div>
+
+{oroCumpleNombre && (
+  <div className="oro-cumple">
+    🎂 Cumple de <strong>{oroCumpleNombre}</strong>
+  </div>
+)}
+
       </>
     ) : (
       <div className="oro-main">Cargá la lista de cumpleaños para calcular la próxima Fecha de Oro</div>
@@ -628,7 +809,7 @@ async function handleSaveEvent(e) {
         <button
           className="oro-btn"
           onClick={() => {
-            setOroDraftISO(oroOverrideISO || autoOroISO || "");
+            setOroDraftISO(oroOverrideISO || autoOro?.iso || "");
             setOroEditOpen(true);
           }}
         >
@@ -636,14 +817,81 @@ async function handleSaveEvent(e) {
         </button>
 
         {oroOverrideISO && (
-          <button className="oro-btn oro-btn-ghost" onClick={() => saveOroOverride(null)}>
-            Volver a automático
-          </button>
+<button
+  className="oro-btn oro-btn-ghost"
+  onClick={() =>
+    saveOroOverride({
+      tipo: "automatico",
+      fechaISO: null,
+      nombre: oroCumpleNombre,
+    })
+  }
+>
+  Volver a automático
+</button>
+
         )}
       </div>
     )}
   </div>
 </div>
+
+{/* ===============================
+    FECHAS DE ORO CONGELADAS
+=============================== */}
+{oroCongeladas.length > 0 && (
+  <div className="oro-congeladas">
+{oroCongeladas.map((c) => (
+  <div key={c.id} className="oro-congelada-card">
+    <div className="oro-congelada-title">⏸ Reprogramada</div>
+
+    <div className="oro-congelada-original">
+      🎂 <strong>{c.nombre}</strong> — Original: {formatDDMMYYYYFromISO(c.originalISO)}
+    </div>
+
+    <div className="oro-congelada-date">
+      {c.aDefinir
+        ? "Nueva fecha: a definir"
+        : `Nueva fecha: ${formatDDMMYYYYFromISO(c.reprogramadaISO)}`}
+{isAdmin && (
+  <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
+    <button
+      onClick={() => abrirEditarCongelada(c)}
+      style={{
+        flex: 1,
+        background: "#f1c40f",
+        border: "none",
+        borderRadius: "6px",
+        fontWeight: "700",
+        cursor: "pointer",
+      }}
+    >
+      Editar
+    </button>
+
+    <button
+      onClick={() => borrarCongelada(c.id)}
+      style={{
+        background: "#e74c3c",
+        border: "none",
+        borderRadius: "6px",
+        color: "white",
+        fontWeight: "700",
+        cursor: "pointer",
+        padding: "0 10px",
+      }}
+    >
+      X
+    </button>
+  </div>
+)}
+    </div>
+  </div>
+))}
+
+
+  </div>
+)}
 
 {/* MODAL EDITAR (solo admin) */}
 {isAdmin && oroEditOpen && (
@@ -664,9 +912,19 @@ async function handleSaveEvent(e) {
       />
 
       <div className="oro-modal-row">
-        <button className="oro-modal-save" onClick={() => saveOroOverride(oroDraftISO || null)}>
-          Guardar
-        </button>
+<button
+  className="oro-modal-save"
+  onClick={() =>
+    saveOroOverride({
+      tipo: "reprogramar",
+      fechaISO: oroDraftISO || null,
+      nombre: oroCumpleNombre || "Fecha de Oro",
+    })
+  }
+>
+  Guardar
+</button>
+
         <button className="oro-modal-cancel" onClick={() => setOroEditOpen(false)}>
           Cancelar
         </button>
@@ -1232,6 +1490,42 @@ async function handleSaveEvent(e) {
               </div>
             ))
           )}
+          {editCongelada && (
+  <div className="oro-modal-backdrop">
+    <div className="oro-modal">
+      <h3>Editar reprogramación</h3>
+
+      <label>Nombre</label>
+      <input
+        value={editNombre}
+        onChange={(e) => setEditNombre(e.target.value)}
+      />
+
+      <label style={{ marginTop: "8px" }}>
+        <input
+          type="checkbox"
+          checked={editFechaADefinir}
+          onChange={(e) => setEditFechaADefinir(e.target.checked)}
+        />
+        Fecha a definir
+      </label>
+
+      {!editFechaADefinir && (
+        <input
+          type="date"
+          value={editFechaISO}
+          onChange={(e) => setEditFechaISO(e.target.value)}
+        />
+      )}
+
+      <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+        <button onClick={guardarEdicionCongelada}>Guardar</button>
+        <button onClick={() => setEditCongelada(null)}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
       </div>
     </>
