@@ -690,3 +690,142 @@ body {
   40% { opacity: 1; }
   60% { opacity: 0.82; }
 }
+/* ===============================
+   FECHA DE ORO – ANIMACIONES
+=============================== */
+
+.oro-banner {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* NORMAL */
+.oro-normal {
+  opacity: 0.85;
+}
+
+/* ESTA SEMANA */
+.oro-semana {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  animation: pulse-soft 2s infinite;
+}
+
+/* MAÑANA */
+.oro-mañana {
+  color: #ffcc00;
+  text-shadow: 0 0 16px rgba(255, 204, 0, 0.9);
+  animation: pulse-medium 1.3s infinite;
+}
+
+/* HOY */
+.oro-hoy {
+  color: #fff200;
+  font-weight: 900;
+  text-shadow: 
+    0 0 10px #fff200,
+    0 0 25px #ffd700,
+    0 0 45px #ffae00;
+  animation: pulse-strong 0.9s infinite;
+}
+
+/* KEYFRAMES */
+@keyframes pulse-soft {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse-medium {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse-strong {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Cumple */
+.oro-cumple {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  opacity: 0.95;
+}
+.oro-congeladas {
+  position: fixed;
+  top: 140px;
+  right: 20px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 50;
+}
+
+.oro-congelada-card {
+  background: rgba(30, 24, 8, 0.95);
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+}
+
+.oro-congelada-title {
+  font-weight: 800;
+  color: #ffd700;
+  margin-bottom: 6px;
+}
+
+.oro-congelada-date {
+  font-size: 0.9rem;
+}
+/* ===============================
+   FECHAS DE ORO CONGELADAS
+=============================== */
+
+.oro-congeladas {
+  position: fixed;
+  top: 140px;
+  right: 20px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 50;
+}
+
+.oro-congelada-card {
+  background: linear-gradient(180deg, #2a2108, #1b1606);
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.oro-congelada-title {
+  font-weight: 800;
+  color: #ffd700;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.oro-congelada-original {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.oro-congelada-date {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+
+@keyframes oroFlicker{
+  0%, 100% { opacity: 0.92; }
+  40% { opacity: 1; }
+  60% { opacity: 0.82; }
+}
