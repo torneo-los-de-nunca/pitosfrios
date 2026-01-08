@@ -829,3 +829,26 @@ body {
   40% { opacity: 1; }
   60% { opacity: 0.82; }
 }
+/* ===============================
+   FECHAS DE ORO – MOBILE FIX
+================================ */
+
+@media (max-width: 768px) {
+  .oro-congeladas {
+    position: static;
+    margin: 12px auto 0 auto;
+    padding: 0 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .oro-congelada-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .oro-congelada-card h4,
+  .oro-congelada-card p {
+    font-size: 14px;
+  }
+}
