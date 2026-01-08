@@ -830,14 +830,14 @@ body {
   60% { opacity: 0.82; }
 }
 /* ===============================
-   FECHAS DE ORO – MOBILE FIX
+   FECHAS DE ORO – MOBILE FIX (SUAVE)
 ================================ */
 
 @media (max-width: 768px) {
   .oro-congeladas {
     position: static;
-    margin: 12px auto 0 auto;
-    padding: 0 12px;
+    margin: 28px auto 32px auto; /* más aire arriba y abajo */
+    padding: 0 16px;
     width: 100%;
     box-sizing: border-box;
   }
@@ -845,10 +845,22 @@ body {
   .oro-congelada-card {
     width: 100%;
     max-width: 100%;
+    padding: 10px 12px;           /* más compacto */
+    border-radius: 10px;
+    box-shadow: none;             /* chau glow fuerte */
+    border: 1px solid #f1c40f;    /* borde fino, elegante */
+    background: rgba(0, 0, 0, 0.55);
   }
 
-  .oro-congelada-card h4,
+  .oro-congelada-card h4 {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
   .oro-congelada-card p {
-    font-size: 14px;
+    font-size: 13px;
+    margin: 2px 0;
+    line-height: 1.3;
   }
 }
+
