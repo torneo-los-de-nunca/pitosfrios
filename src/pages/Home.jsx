@@ -240,6 +240,7 @@ const [editCongelada, setEditCongelada] = useState(null);
 const [editNombre, setEditNombre] = useState("");
 const [editFechaISO, setEditFechaISO] = useState("");
 const [editFechaADefinir, setEditFechaADefinir] = useState(false);
+  const [editOriginalISO, setEditOriginalISO] = useState("");
 
 
 
@@ -480,9 +481,11 @@ async function saveOroOverride({ tipo, fechaISO, nombre }) {
 function abrirEditarCongelada(c) {
   setEditCongelada(c);
   setEditNombre(c.nombre);
-  setEditFechaISO(c.fechaReprogramadaISO || "");
-  setEditFechaADefinir(c.fechaADefinir || false);
+  setEditFechaISO(c.reprogramadaISO || "");
+  setEditFechaADefinir(!!c.aDefinir);
+  setEditOriginalISO(c.originalISO || "");
 }
+
 
 async function guardarEdicionCongelada() {
   if (!editCongelada) return;
@@ -491,6 +494,7 @@ async function guardarEdicionCongelada() {
     doc(db, "config", "fechasOro", "congeladas", editCongelada.id),
     {
       nombre: editNombre,
+      originalISO: editOriginalISO,
       reprogramadaISO: editFechaADefinir ? null : editFechaISO,
       aDefinir: editFechaADefinir,
       updatedAt: new Date(),
@@ -1544,7 +1548,12 @@ async function handleSaveEvent(e) {
         value={editNombre}
         onChange={(e) => setEditNombre(e.target.value)}
       />
-
+<label style={{ marginTop: "8px" }}>Fecha original</label>
+<input
+  type="date"
+  value={editOriginalISO}
+  onChange={(e) => setEditOriginalISO(e.target.value)}
+/>
       <label style={{ marginTop: "8px" }}>
         <input
           type="checkbox"
