@@ -224,6 +224,15 @@ const [oroOverrideISO, setOroOverrideISO] = useState(null); // "YYYY-MM-DD" o nu
 const [oroEditOpen, setOroEditOpen] = useState(false);
 const [oroDraftISO, setOroDraftISO] = useState("");
 const [oroCongeladas, setOroCongeladas] = useState([]);
+  const [, forceTick] = useState(0);
+
+useEffect(() => {
+  const i = setInterval(() => {
+    forceTick(t => t + 1);
+  }, 1000);
+
+  return () => clearInterval(i);
+}, []);
 const [oroOverrideMode, setOroOverrideMode] = useState(null); // "fecha" | "indefinido" | null
 const [oroOverrideNombre, setOroOverrideNombre] = useState(null);
 const [oroOverrideOriginalISO, setOroOverrideOriginalISO] = useState(null);
@@ -295,6 +304,26 @@ function computeNextGoldDate(baseDate = new Date()) {
     iso: `${y}-${m}-${day}`,
     nombre: next.nombre,
   };
+}
+// ===============================
+// ⏳ CONTADOR FECHA DE ORO (30 DÍAS)
+// ===============================
+function calcularCountdown(originalISO) {
+  if (!originalISO) return null;
+
+  const ahora = new Date().getTime();
+  const original = new Date(originalISO + "T12:00:00").getTime();
+  const limite = original + 30 * 24 * 60 * 60 * 1000; // +30 días
+
+  let diff = limite - ahora;
+  if (diff < 0) diff = 0;
+
+  const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutos = Math.floor((diff / (1000 * 60)) % 60);
+  const segundos = Math.floor((diff / 1000) % 60);
+
+  return { dias, horas, minutos, segundos };
 }
 
     // ===============================
@@ -885,6 +914,21 @@ async function handleSaveEvent(e) {
     </button>
   </div>
 )}
+      {c.aDefinir && (() => {
+  const t = calcularCountdown(c.originalISO);
+  if (!t) return null;
+
+  return (
+    <div className="oro-deadline">
+      <div className="oro-deadline-title">
+        ⏳ Plazo máximo para realizar la Fecha de Oro
+      </div>
+      <div className="oro-deadline-time">
+        {t.dias}d {t.horas}h {t.minutos}m {t.segundos}s
+      </div>
+    </div>
+  );
+})()}
     </div>
   </div>
 ))}
