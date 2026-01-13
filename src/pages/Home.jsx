@@ -925,7 +925,7 @@ async function handleSaveEvent(e) {
   return (
     <div className="oro-deadline">
       <div className="oro-deadline-title">
-        ⏳ Plazo máximo para realizar la Fecha de Oro
+        ⏳ Plazo restante para realizar Fecha de Oro
       </div>
       <div className="oro-deadline-time">
         {t.dias}d {t.horas}h {t.minutos}m {t.segundos}s
