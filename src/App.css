@@ -863,4 +863,30 @@ body {
     line-height: 1.3;
   }
 }
+/* ===============================
+   ⏳ DEADLINE FECHA DE ORO
+=============================== */
+
+.oro-deadline {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 80, 80, 0.4);
+  text-align: center;
+}
+
+.oro-deadline-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ff6b6b;
+  opacity: 0.9;
+}
+
+.oro-deadline-time {
+  margin-top: 2px;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #ff3b3b;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+  font-family: monospace;
+}
 
